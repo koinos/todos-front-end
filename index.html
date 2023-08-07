@@ -13,33 +13,78 @@
   <div id="app">
     <header>
       <h1>Koinos Todos</h1>
-      <input type="text" placeholder="What needs to be done?" v-model="newTodo" @keyup.enter="addTodo" />
-      <button>Submit</button>
+      <input type="text" placeholder="What needs to be done?" id="newTodo"/>
+      <button id="addTodo">Submit</button>
     </header>
     <div class="card">
       <div class="results invisible">
 
       </div>
+      <button id="getAccounts">Connect kondor</button>
       <button id="getTodos">Get Todos</button>
     </div>
   </div>
-  <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript"></script>
   <script src="js/kondor.js"></script>
   <script src="js/koinos.js"></script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <script type="module" src="/main.js"></script>
-  <script>
-    const getTs = document.getElementById("getTodos");
+  <script type="module">
+    let todosContract;
+    let accounts;
 
-    getTs.addEventListener("click", (event) => {
-      const results = document.querySelector(".results");
-      results.classList.toggle("visible");
-      console.log(results);
-    });
+    async function connectKondor() {
+      console.log("Connecting kondor...")
+      accounts = await kondor.getAccounts();
+      console.log("Kondor connected");
+      console.log(accounts);
+    }
 
+    async function getContract() {
+      if (todosContract) return todosContract;
+      if (!accounts) await connectKondor();
+      const provider = new Provider(["https://harbinger-api.koinos.io"]);
+      const userAddress = accounts[0].address;
+      const todosContractAddress = "1BKnB35ow1rhJ5WJUmYTBdkfSTBPbyqrQg";
+      
+      todosContract = new Contract({
+        id: todosContractAddress,
+        provider,
+        signer: kondor.getSigner(userAddress),
+      });
+      
+      // get the abi of todosContract
+      await todosContract.fetchAbi();
+      
+      // update abi to be compatible with koilib
+      todosContract.abi.methods.add_todo.entry_point = Number(todosContract.abi.methods.add_todo["entry-point"]);
+      todosContract.abi.methods.add_todo.read_only = todosContract.abi.methods.add_todo["read-only"];
+      todosContract.abi.methods.get_todos.entry_point = Number(todosContract.abi.methods.get_todos["entry-point"]);
+      todosContract.abi.methods.get_todos.read_only = todosContract.abi.methods.get_todos["read-only"];
 
+      return todosContract;
+    }
 
+    async function getTodos() {
+      console.log("Getting todos");
+      const contract = await getContract();
+      const { result } = await contract.functions.get_todos();
+      console.log("Result");
+      console.log(result);
+    }
+
+    async function addTodo() {
+      const { value: task } = document.getElementById("newTodo");
+      const contract = await getContract();
+      const { transaction, receipt } = await contract.functions.add_todo({ task });
+      console.log("submitted. Receipt:");
+      console.log(receipt);
+      
+      // wait to be mined
+      const { blockNumber } = await transaction.wait();
+      console.log(`mined in block ${blockNumber}`);
+    }
+
+    document.getElementById("getAccounts").addEventListener("click", connectKondor);
+    document.getElementById("addTodo").addEventListener("click", addTodo);
+    document.getElementById("getTodos").addEventListener("click", getTodos);
   </script>
 </body>
-
 </html>
