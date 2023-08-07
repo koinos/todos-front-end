@@ -1,7 +1,7 @@
 const accounts = await kondor.getAccounts();
 const provider = new Provider(["https://api.koinos.io"]);
 const userAddress = accounts[0].address;
-const todosContractAddress = "19JntSm8pSNETT9aHTwAUHC5RMoaSmgZPJ";
+const todosContractAddress = "1BKnB35ow1rhJ5WJUmYTBdkfSTBPbyqrQg";
 
 const todosContract = new Contract({
   id: todosContractAddress,
