@@ -12,15 +12,19 @@
 <body>
   <div id="app">
     <header>
+      <button id="getAccounts" class="secondary-button">Connect kondor</button>
       <h1>Koinos Todos</h1>
-      <input type="text" placeholder="What needs to be done?" id="newTodo"/>
+      <input type="text" placeholder="What needs to be done?" id="newTodo" />
       <button id="addTodo">Submit</button>
+      <div id="minde-block"></div>
     </header>
+    <div class="loader-container">
+      <span id="loader" class="loader invisible"></span>
+    </div>
     <div class="card">
-      <div class="results invisible">
+      <div class="results" id="display-results">
 
       </div>
-      <button id="getAccounts">Connect kondor</button>
       <button id="getTodos">Get Todos</button>
     </div>
   </div>
@@ -43,16 +47,16 @@
       const provider = new Provider(["https://harbinger-api.koinos.io"]);
       const userAddress = accounts[0].address;
       const todosContractAddress = "1BKnB35ow1rhJ5WJUmYTBdkfSTBPbyqrQg";
-      
+
       todosContract = new Contract({
         id: todosContractAddress,
         provider,
         signer: kondor.getSigner(userAddress),
       });
-      
+
       // get the abi of todosContract
       await todosContract.fetchAbi();
-      
+
       // update abi to be compatible with koilib
       todosContract.abi.methods.add_todo.entry_point = Number(todosContract.abi.methods.add_todo["entry-point"]);
       todosContract.abi.methods.add_todo.read_only = todosContract.abi.methods.add_todo["read-only"];
@@ -66,8 +70,15 @@
       console.log("Getting todos");
       const contract = await getContract();
       const { result } = await contract.functions.get_todos();
+      document.getElementById("display-results").innerHTML = JSON.stringify(result.value);
       console.log("Result");
-      console.log(result);
+      console.log(result.value);
+    }
+
+    async function displayTodos() {
+      const contract = await getContract();
+      const { result } = await contract.functions.get_todos();
+      document.getElementById("display-results").innerHTML = JSON.stringify(result);
     }
 
     async function addTodo() {
@@ -76,10 +87,11 @@
       const { transaction, receipt } = await contract.functions.add_todo({ task });
       console.log("submitted. Receipt:");
       console.log(receipt);
-      
+
       // wait to be mined
       const { blockNumber } = await transaction.wait();
       console.log(`mined in block ${blockNumber}`);
+      document.getElementById("minde-block").innerHTML = `mined in block ${blockNumber}`;
     }
 
     document.getElementById("getAccounts").addEventListener("click", connectKondor);
@@ -87,4 +99,5 @@
     document.getElementById("getTodos").addEventListener("click", getTodos);
   </script>
 </body>
+
 </html>
