@@ -49,6 +49,10 @@ h1 {
   height: 100vh;
   justify-content: space-around;
 }
+#mined-block {
+  padding: 1em;
+  color: #fcff64;
+}
 
 .card {
   padding: 2em;
