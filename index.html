@@ -3,7 +3,6 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="./style.css">
   <title>Koinos Todos</title>
@@ -41,6 +40,8 @@
       console.log(accounts);
     }
 
+    // Get the contract from the blockchain
+
     async function getContract() {
       if (todosContract) return todosContract;
       if (!accounts) await connectKondor();
@@ -66,6 +67,8 @@
       return todosContract;
     }
 
+    // Get the list of todos from the blockchain
+
     async function getTodos() {
       console.log("Getting todos");
       const contract = await getContract();
@@ -75,11 +78,7 @@
       console.log(result.value);
     }
 
-    async function displayTodos() {
-      const contract = await getContract();
-      const { result } = await contract.functions.get_todos();
-      document.getElementById("display-results").innerHTML = JSON.stringify(result);
-    }
+    // Call the add_todo function on the contract
 
     async function addTodo() {
       const { value: task } = document.getElementById("newTodo");
